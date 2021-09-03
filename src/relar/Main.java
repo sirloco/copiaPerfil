@@ -8,8 +8,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 
-import java.util.Arrays;
-import java.util.List;
 import javax.swing.filechooser.FileSystemView;
 
 public class Main {
@@ -31,17 +29,18 @@ public class Main {
     String uniTerCop = null;
 
     // Listado de todas las unidades de almacenamiento del sistema
-    List<File> unidades = Arrays.asList(File.listRoots());
+    File[] unidades = File.listRoots();
 
     // Se recorre toda la lista en busca de las particiones del disco externo
     for (File u : unidades) {
       String nombreUnidad = FileSystemView.getFileSystemView().getSystemDisplayName(u);
+      String letra = nombreUnidad.charAt(nombreUnidad.length() - 3) + ":\\";
 
       if (nombreUnidad.indexOf("Copia") == 0)
-        unidad = nombreUnidad.charAt(nombreUnidad.length() - 3) + ":\\";
+        unidad = letra;
 
       if (nombreUnidad.indexOf("Santi") == 0)
-        uniTerCop = nombreUnidad.charAt(nombreUnidad.length() - 3) + ":\\";
+        uniTerCop = letra;
 
     }
 
@@ -58,6 +57,9 @@ public class Main {
 
     // Se crea destino carpeta firefox
     String desFire = destino + "\\Firefox";
+
+    String[] exportaReg = { "REG", "EXPORT", "HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\Shell\\Bags\\1\\Desktop",
+        destino + "\\posicionIconos.reg" };
 
     System.out.println(destino);
 
@@ -193,6 +195,8 @@ public class Main {
     try {
 
       // Runtime.getRuntime().exec(tera); No se lanza
+
+      Runtime.getRuntime().exec(exportaReg);
 
       if (firmas.exists()) {
         String[] sig = { uniTerCop + "TeraCopy\\TeraCopy.exe", "Copy", rutaFirmas, destino };
