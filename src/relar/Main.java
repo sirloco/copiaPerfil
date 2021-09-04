@@ -173,19 +173,21 @@ public class Main {
    * @param destino carpeta donde se aloja la copia que se genera
    */
   public static String posicionIconos(String destino) {
-    try {
 
-      String[] exportaReg = {
+      ProcessBuilder pb = new ProcessBuilder(
           "REG",
           "EXPORT",
           "HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\Shell\\Bags\\1\\Desktop",
-          destino + "\\posicionIconos.reg"};
+          destino + "\\posicionIconos.reg");
 
-      Runtime.getRuntime().exec(exportaReg);
+      pb.redirectErrorStream(true);
 
-    } catch (IOException e) {
-      return "Error al generar el archivo .reg de iconos del ecritorio";
-    }
+      try {
+        pb.start();
+      } catch (IOException e) {
+        System.out.println("Error al ejecutar copiado: " + e);
+      }
+
 
     return "posicionIconos.reg creado";
   }
@@ -218,6 +220,7 @@ public class Main {
       assert p != null;
       int exitValue = p.waitFor();
       System.out.println("\nCódigo de salida: " + exitValue);
+
     } catch (InterruptedException e) {
       e.printStackTrace(System.err);
     }
