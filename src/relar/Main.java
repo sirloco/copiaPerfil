@@ -7,26 +7,20 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.filechooser.FileSystemView;
 
 public class Main {
 
-  public static void main(String[] args) throws AWTException {
+  public static void main(String[] args) {
 
-    // Se obtiene nombre del usuario
-    String nombreUsuario = System.getProperty("user.name");
-
-    // obtenemos el tamaño del rectangulo
-    Rectangle rectangleTam = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
-
-    Robot robot = new Robot();
-
-    // tomamos una captura de pantalla( screenshot )
-    BufferedImage bufferedImage = robot.createScreenCapture(rectangleTam);
-
-    String unidad = null;
+    String mensaje = "";
+    String unidadDestino = null;
     String uniTerCop = null;
+
+    ////////////////////////  MODO AUTOMATICO/////////////////////////////////////////////////////////
 
     // Listado de todas las unidades de almacenamiento del sistema
     File[] unidades = File.listRoots();
@@ -37,109 +31,21 @@ public class Main {
       String letra = nombreUnidad.charAt(nombreUnidad.length() - 3) + ":\\";
 
       if (nombreUnidad.indexOf("Copia") == 0)
-        unidad = letra;
+        unidadDestino = letra;
 
       if (nombreUnidad.indexOf("Santi") == 0)
         uniTerCop = letra;
 
     }
 
-    if (unidad == null) {
+    ////////////////////////  MODO MANUAL /////////////////////////////////////////////////////////
+    if (unidadDestino == null) {
       // Se obtiene la unidad donde se va a realizar la copia manualmente
-      unidad = JOptionPane.showInputDialog("Unidad Donde se hará la copia no encontrada introducir:");
+      unidadDestino = JOptionPane.showInputDialog("Unidad Donde se hará la copia no encontrada introducir:");
 
       // Se pasa a mayusculas y se añade :\
-      unidad = unidad.toUpperCase() + ":\\";
+      unidadDestino = unidadDestino.toUpperCase() + ":\\";
     }
-
-    // Se crea la ruta destino
-    String destino = unidad + nombreUsuario;
-
-    // Se crea destino carpeta firefox
-    String desFire = destino + "\\Firefox";
-
-    String[] exportaReg = { "REG", "EXPORT", "HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\Shell\\Bags\\1\\Desktop",
-        destino + "\\posicionIconos.reg" };
-
-    System.out.println(destino);
-
-    // Se crea la carpeta del usuario pasandole la ruta
-    File carpeta = new File(destino);
-
-    // Se crea la carpeta de firefox
-    File carpetaFirefox = new File(desFire);
-
-    if (carpeta.mkdir()) // aqui se ejecuta el comando de creacion de la carpeta
-      System.out.println("Creado");
-
-    if (carpetaFirefox.mkdir()) // aqui se ejecuta el comando de creacion de la carpeta
-      System.out.println("Creado");
-
-    ///////////////////////// CAPTURA DE PANTALLA DEL ESCRITORIO
-    ///////////////////////// //////////////////////////////////////////////////
-
-    try {
-
-      // String
-      // nombreFichero=System.getProperty("user.home")+File.separatorChar+"caputura.png";
-      String nombreFichero = carpeta + "\\Escritorio Anterior.png";
-      System.out.println("Generando el fichero: " + nombreFichero);
-      FileOutputStream out = new FileOutputStream(nombreFichero);
-
-      // esbribe la imagen a fichero
-      ImageIO.write(bufferedImage, "png", out);
-
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-
-    ////////////////////////////// SE OBTIENE LA IMPRESORA PREDETERMINADA
-    ////////////////////////////// //////////////////////////////////////////
-
-    // Sacar impresora predeterminada
-    PrintService impresora = PrintServiceLookup.lookupDefaultPrintService();
-
-    try {
-      File myObj = new File(carpeta + "\\Impresora predeterminada.txt");
-      if (myObj.createNewFile()) {
-        System.out.println("File created: " + myObj.getName());
-      } else {
-        System.out.println("File already exists.");
-      }
-    } catch (IOException e) {
-      System.out.println("An error occurred.");
-      e.printStackTrace();
-    }
-
-    try {
-      FileWriter myWriter = new FileWriter(carpeta + "\\Impresora predeterminada.txt");
-      myWriter.write("Impresora Predeterminada: " + impresora);
-      myWriter.close();
-      System.out.println("Escritura correcta");
-    } catch (IOException e) {
-      System.out.println("Ha ocurrido un error");
-      e.printStackTrace();
-    }
-
-    System.out.println(impresora);
-
-    /////////////////////////////////// Se obtiene la lista de programas instalados
-    /////////////////////////////////// ////////////////////////////////
-
-    Process p = null;
-    try {
-      p = Runtime.getRuntime()
-          .exec("powershell -command \"Get-ItemProperty HKLM:\\Software\\Wow6432Node"
-              + "\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\* | Select-Object DisplayName, DisplayVersion "
-              + "| Format-Table –AutoSize | Out-File -FilePath " + destino + "\\Programas.txt\"");
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-
-    System.out.println(p);
-
-    /////////////////////////////////////// Se lanza Teracopy para copiar datos
-    /////////////////////////////////////// ////////////////////////////////////
 
     if (uniTerCop == null) {
       // Se obtiene la unidad donde se encuentra el teracopy manualmente
@@ -148,118 +54,257 @@ public class Main {
       // Se pasa a mayusculas y se añade :\
       uniTerCop = uniTerCop.toUpperCase() + ":\\";
     }
+    /////////////////////////////////////////////////////////////////////////////////////////////////
 
-    File postmigracion = new File("C:\\Postmigracion");
+    // Se obtiene nombre del usuario
+    String nombreUsuario = System.getProperty("user.name");
 
-    File correo = new File("C:\\correo");
+    // Se crea la ruta destino
+    String destino = unidadDestino + nombreUsuario;
 
-    File scaner = new File("C:\\escaner");
+    mensaje += "Ruta destino obtenida: " + destino + "\n";
 
-    File datos = new File("C:\\datos");
+    //Creacion de carpetas//
+    // Se crea la carpeta del usuario pasandole la ruta
+    File carpetaDestino = new File(destino);
 
-    String rutaFirmas = "C:\\Users\\" + nombreUsuario + "\\AppData\\Roaming\\Microsoft\\Firmas";
-    File firmas = new File(rutaFirmas);
 
-    String rutaFavChrome = "C:\\Users\\" + nombreUsuario
-        + "\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Bookmarks";
-    File favChrome = new File(rutaFavChrome);
+    if (carpetaDestino.mkdir())
+      mensaje += "Carpeta " + nombreUsuario + " Creada" + "\n";
 
-    String rutaSaplogon = "C:\\Windows\\Saplogon.ini";
-    File saplogon = new File(rutaSaplogon);
+    // CAPTURA DE PANTALLA DEL ESCRITORIO
+    mensaje += captura(destino) + "\n";
 
-    // rutas
-    String programa = uniTerCop + "TeraCopy\\TeraCopy.exe";
-    String origen = "C:\\Users\\" + nombreUsuario;
+    // IMPRESORA PREDETERMINADA
+    mensaje += impresora(destino) + "\n";
 
-    File correoP = new File(origen + "\\correo");
+    // LISTADO PROGRAMAS INSTALADOS
+    mensaje += programas(destino) + "\n";
 
-    File barra = new File(
-        origen + "\\AppData\\Roaming\\Microsoft\\Internet Explorer\\Quick Launch\\User Pinned\\TaskBar");
+    // POSICION DE LOS ICONOS DEL ESCRITORIO .REG
+    mensaje += posicionIconos(destino);
 
-    String oriFireIni = origen + "\\AppData\\Roaming\\Mozilla\\Firefox";
-    String origenFirefox = oriFireIni + "\\Profiles";
+    System.out.println(mensaje);
 
-    String[] esc = { programa, "Copy", origen + "\\Desktop", destino };
-    String[] des = { programa, "Copy", origen + "\\Downloads", destino };
-    String[] doc = { programa, "Copy", origen + "\\Documents", destino };
-    String[] fav = { programa, "Copy", origen + "\\Favorites", destino };
-    String[] img = { programa, "Copy", origen + "\\Pictures", destino };
-    String[] mus = { programa, "Copy", origen + "\\Music", destino };
-    String[] vid = { programa, "Copy", origen + "\\Videos", destino };
 
-    String[] fir = { programa, "Copy", origenFirefox, desFire };
-    String[] ini = { programa, "Copy", oriFireIni + "\\profiles.ini", desFire };
+    //SE GENERA LA LISTA DE LAS RUTAS A COMPROBAR
+    List<String> rutas = new ArrayList<>();
 
-    // String [] tera = {uniTerCop + "TeraCopy\\TeraCopy.exe"};
+    //SE GENERA LA LISTA PARA COPIAR
+    List<String> lista = new ArrayList<>();
+
+
+    String perfUsu = "C:\\Users\\" + nombreUsuario;
+
+    lista.add(perfUsu + "\\Desktop");
+    lista.add(perfUsu + "\\Downloads");
+    lista.add(perfUsu + "\\Documents");
+    lista.add(perfUsu + "\\Favorites");
+    lista.add(perfUsu + "\\Pictures");
+    lista.add(perfUsu + "\\Music");
+    lista.add(perfUsu + "\\Videos");
+
+    // ESTAS DE AQUI SE TIENEN QUE COMPROBAR ANTES DE INTENTAR COPIARLAS A LA LISTA //
+    rutas.add(perfUsu + "\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Bookmarks");
+    rutas.add(perfUsu + "\\AppData\\Roaming\\Microsoft\\Firmas");
+    rutas.add(perfUsu + "\\correo");
+    rutas.add(perfUsu + "\\AppData\\Roaming\\Mozilla\\Firefox\\profiles.ini");
+    rutas.add(perfUsu + "\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles");
+    rutas.add("C:\\Postmigracion");
+    rutas.add("C:\\correo");
+    rutas.add("C:\\escaner");
+    rutas.add("C:\\datos");
+    rutas.add("C:\\Windows\\Saplogon.ini");
+    rutas.add(perfUsu + "\\AppData\\Roaming\\Microsoft\\Internet Explorer\\Quick Launch\\User Pinned\\TaskBar");
+
+    // AQUI SE MANDAN COMPROBAR SI EXISTEN
+    for (String ruta : rutas)
+      genLista(ruta, lista);
+
+    String log = "";
+
+    // SE CREA EL FICHERO CON LA LISTA PARA COPIAR
+    try {
+      File listado = new File(destino + "\\lista.txt");
+
+      if (listado.createNewFile())
+        log += listado.getName() + " Creado" + "\n";
+
+    } catch (IOException e) {
+      log += "Ha ocurrido un error al crear el archivo txt." + e + "\n";
+    }
 
     try {
+      FileWriter myWriter = new FileWriter(destino + "\\lista.txt");
 
-      // Runtime.getRuntime().exec(tera); No se lanza
+      for (String r : lista)
+        myWriter.write(r + "\n");
+
+      myWriter.close();
+      log += "Contenido de la lista agregado";
+    } catch (IOException e) {
+      log += "Ha ocurrido un error al escribir en el fichero txt" + e;
+      //e.printStackTrace();
+    }
+
+
+    System.out.println(log);
+
+    // SE LANZA LA SENTENCIA DE COPIADO
+    copia(uniTerCop, destino, "*" + destino + "\\lista.txt");
+
+
+  }
+
+
+  /**
+   *
+   * @param ruta ruta a comprobar si existe
+   * @param lista coleccion donde se guarda lo que si se va a copiar
+   */
+  public static void genLista(String ruta, List<String> lista) {
+    if (new File(ruta).exists()) lista.add(ruta);
+  }
+
+  /**
+   * Comando cmd para exportar una clave del registro del sistema de windows con la posicion de
+   * los iconos del escritorio
+   *
+   * @param destino carpeta donde se aloja la copia que se genera
+   */
+  public static String posicionIconos(String destino) {
+    try {
+
+      String[] exportaReg = {
+          "REG",
+          "EXPORT",
+          "HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\Shell\\Bags\\1\\Desktop",
+          destino + "\\posicionIconos.reg"};
 
       Runtime.getRuntime().exec(exportaReg);
 
-      if (firmas.exists()) {
-        String[] sig = { uniTerCop + "TeraCopy\\TeraCopy.exe", "Copy", rutaFirmas, destino };
-        Runtime.getRuntime().exec(sig);
-      }
-
-      if (correoP.exists()) {
-        String[] cor = { uniTerCop + "TeraCopy\\TeraCopy.exe", "Copy", origen + "\\correo", destino };
-        Runtime.getRuntime().exec(cor);
-      }
-
-      if (barra.exists()) {
-        String[] bar = { uniTerCop + "TeraCopy\\TeraCopy.exe", "Copy",
-            origen + "\\AppData\\Roaming\\Microsoft\\Internet Explorer\\Quick Launch\\User Pinned\\TaskBar", destino };
-        Runtime.getRuntime().exec(bar);
-      }
-
-      if (postmigracion.exists()) {
-        String[] pos = { uniTerCop + "TeraCopy\\TeraCopy.exe", "Copy", "C:\\Postmigracion", destino };
-        Runtime.getRuntime().exec(pos);
-      }
-
-      if (correo.exists()) {
-        String[] cor = { uniTerCop + "TeraCopy\\TeraCopy.exe", "Copy", "C:\\correo", destino };
-        Runtime.getRuntime().exec(cor);
-      }
-
-      if (scaner.exists()) {
-        String[] escaner = { uniTerCop + "TeraCopy\\TeraCopy.exe", "Copy", "C:\\escaner", destino };
-        Runtime.getRuntime().exec(escaner);
-      }
-
-      if (datos.exists()) {
-        String[] dat = { uniTerCop + "TeraCopy\\TeraCopy.exe", "Copy", "C:\\datos", destino };
-        Runtime.getRuntime().exec(dat);
-      }
-
-      if (favChrome.exists()) {
-        String[] fChrome = { uniTerCop + "TeraCopy\\TeraCopy.exe", "Copy", rutaFavChrome, destino };
-        Runtime.getRuntime().exec(fChrome);
-      }
-
-      if (saplogon.exists()) {
-        String[] sap = { uniTerCop + "TeraCopy\\TeraCopy.exe", "Copy", rutaSaplogon, destino };
-        Runtime.getRuntime().exec(sap);
-      }
-
-      Runtime.getRuntime().exec(esc);
-      Runtime.getRuntime().exec(des);
-      Runtime.getRuntime().exec(doc);
-      Runtime.getRuntime().exec(fav);
-      Runtime.getRuntime().exec(img);
-      Runtime.getRuntime().exec(mus);
-      Runtime.getRuntime().exec(vid);
-
-      Runtime.getRuntime().exec(fir);
-      Runtime.getRuntime().exec(ini);
-
-      System.out.println("comando realizado con exito");
-
     } catch (IOException e) {
-      e.printStackTrace();
+      return "Error al generar el archivo .reg de iconos del ecritorio";
     }
 
+    return "posicionIconos.reg creado";
+  }
+
+  /**
+   * @param uniTerCop unidad donde se encuentra el ejecutable de teracopy
+   * @param destino   carpeta donde se aloja la copia que se genera
+   * @param ruta      ruta de lo que se desea copiar
+   */
+  public static void copia(String uniTerCop, String destino, String ruta) {
+
+    ProcessBuilder pb = new ProcessBuilder(
+        uniTerCop + "\\TeraCopy\\TeraCopy.exe",
+        "Copy",
+        ruta,
+        destino,
+        "/NoClose");
+
+    //pb.directory(new File(uniTerCop + "\\TeraCopy\\TeraCopy.exe"));
+    pb.redirectErrorStream(true);
+
+    Process p = null;
+    try {
+      p = pb.start();
+    } catch (IOException e) {
+      System.out.println("Error al ejecutar copiado: " + e);
+    }
+
+    try {
+      assert p != null;
+      int exitValue = p.waitFor();
+      System.out.println("\nCódigo de salida: " + exitValue);
+    } catch (InterruptedException e) {
+      e.printStackTrace(System.err);
+    }
+
+    System.out.println(p);
+  }
+
+  /**
+   * Comando de powershell para obtener y guardar la lista de programas instalados
+   *
+   * @param destino Para localizar la carpeta donde se genera la lista
+   */
+  public static String programas(String destino) {
+    Process p;
+    try {
+      p = Runtime.getRuntime()
+          .exec("powershell -command \"Get-ItemProperty HKLM:\\Software\\Wow6432Node"
+              + "\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\* | Select-Object DisplayName, DisplayVersion "
+              + "| Format-Table –AutoSize | Out-File -FilePath " + destino + "\\Programas.txt\"");
+    } catch (IOException e) {
+      return "Error al obtener o generar la lista de programas" + e;
+      //e.printStackTrace();
+    }
+
+    return "Listado de programas generado " + p;
+  }
+
+  /**
+   * PrintServiceLookup permite ver las impresoras
+   *
+   * @param carpeta Para localizar la carpeta donde se coloca la imagen
+   */
+  public static String impresora(String carpeta) {
+    String log = "";
+
+    PrintService imp = PrintServiceLookup.lookupDefaultPrintService();
+
+    try {
+      File archivoTxt = new File(carpeta + "\\Impresora predeterminada.txt");
+
+      if (archivoTxt.createNewFile())
+        log += archivoTxt.getName() + " Creado" + "\n";
+
+    } catch (IOException e) {
+      log += "Ha ocurrido un error al crear el archivo txt." + e + "\n";
+      //e.printStackTrace();
+    }
+
+    try {
+      FileWriter myWriter = new FileWriter(carpeta + "\\Impresora predeterminada.txt");
+      myWriter.write("Impresora Predeterminada: " + imp);
+      myWriter.close();
+      log += "Guardada impresora: " + imp;
+    } catch (IOException e) {
+      log += "Ha ocurrido un error al escribir en el fichero txt" + e;
+      //e.printStackTrace();
+    }
+    return log;
+  }
+
+  /**
+   * Delimita el tamaño de la pantalla en un rectangulo y con la clase robot
+   * captura la pantalla con write.io se genera la imagen
+   *
+   * @param carpeta Para localizar la carpeta donde se coloca la imagen
+   */
+  public static String captura(String carpeta) {
+    try {
+      // obtenemos el tamaño del rectangulo de la pantalla
+      Rectangle rectangleTam = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
+
+      Robot robot = new Robot();
+
+      // tomamos una captura de pantalla( screenshot )
+      BufferedImage bufferedImage = robot.createScreenCapture(rectangleTam);
+
+      // nombreFichero=System.getProperty("user.home")+File.separatorChar+"caputura.png";
+      FileOutputStream out = new FileOutputStream(carpeta + "\\Escritorio Anterior.png");
+
+      // esbribe la imagen a fichero
+      ImageIO.write(bufferedImage, "png", out);
+
+      return "Captura de pantalla guardada";
+
+    } catch (IOException | AWTException e) {
+      //e.printStackTrace();
+      return "Fallo al capturar la pantalla: " + e;
+    }
   }
 }
