@@ -4,19 +4,26 @@ import javax.imageio.ImageIO;
 import javax.print.PrintService;
 import javax.print.PrintServiceLookup;
 import javax.swing.*;
+import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.filechooser.FileSystemView;
-
 public class Main {
 
   public static void main(String[] args) {
 
-    String mensaje = "";
+    Ventana ventana = new Ventana();
+
+    ventana.setBounds(200, 200, 410, 250);
+    ventana.setVisible(true);
+    ventana.texto.append("Buscando disco duro \n"); //✔
+    ventana.setState(Frame.ICONIFIED);
+    ventana.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+
+
     String unidadDestino = null;
     String uniTerCop = null;
 
@@ -27,6 +34,7 @@ public class Main {
 
     // Se recorre toda la lista en busca de las particiones del disco externo
     for (File u : unidades) {
+      ventana.texto.append("Analizando unidad: " + u + "\n"); //✔
       String nombreUnidad = FileSystemView.getFileSystemView().getSystemDisplayName(u);
       String letra = nombreUnidad.charAt(nombreUnidad.length() - 3) + ":\\";
 
@@ -45,7 +53,8 @@ public class Main {
 
       // Se pasa a mayusculas y se añade :\
       unidadDestino = unidadDestino.toUpperCase() + ":\\";
-    }
+    } else
+      ventana.texto.append("Unidad Copia Encontrada en: " + unidadDestino + "\n"); //✔
 
     if (uniTerCop == null) {
       // Se obtiene la unidad donde se encuentra el teracopy manualmente
@@ -53,16 +62,20 @@ public class Main {
 
       // Se pasa a mayusculas y se añade :\
       uniTerCop = uniTerCop.toUpperCase() + ":\\";
-    }
+    } else
+      ventana.texto.append("Unidad Teracopy Encontrada en: " + uniTerCop + "\n"); //✔
+
     /////////////////////////////////////////////////////////////////////////////////////////////////
 
     // Se obtiene nombre del usuario
     String nombreUsuario = System.getProperty("user.name");
 
+    ventana.texto.append("Usuario: " + nombreUsuario + "\n"); //✔
+
     // Se crea la ruta destino
     String destino = unidadDestino + nombreUsuario;
 
-    mensaje += "Ruta destino obtenida: " + destino + "\n";
+    ventana.texto.append("Ruta destino obtenida: " + destino + "\n"); //✔
 
     //Creacion de carpetas//
     // Se crea la carpeta del usuario pasandole la ruta
@@ -70,22 +83,20 @@ public class Main {
 
 
     if (carpetaDestino.mkdir())
-      mensaje += "Carpeta " + nombreUsuario + " Creada" + "\n";
+      ventana.texto.append("Carpeta " + nombreUsuario + " Creada" + "\n"); //✔
+
 
     // CAPTURA DE PANTALLA DEL ESCRITORIO
-    mensaje += captura(destino) + "\n";
+    ventana.texto.append(captura(destino) + "\n"); //✔
 
     // IMPRESORA PREDETERMINADA
-    mensaje += impresora(destino) + "\n";
+    ventana.texto.append(impresora(destino) + "\n"); //✔
 
     // LISTADO PROGRAMAS INSTALADOS
-    mensaje += programas(destino) + "\n";
+    ventana.texto.append(programas(destino) + "\n"); //✔
 
     // POSICION DE LOS ICONOS DEL ESCRITORIO .REG
-    mensaje += posicionIconos(destino);
-
-    System.out.println(mensaje);
-
+    ventana.texto.append(posicionIconos(destino) + "\n"); //✔
 
     //SE GENERA LA LISTA DE LAS RUTAS A COMPROBAR
     List<String> rutas = new ArrayList<>();
@@ -119,19 +130,18 @@ public class Main {
 
     // AQUI SE MANDAN COMPROBAR SI EXISTEN
     for (String ruta : rutas)
-      genLista(ruta, lista);
-
-    String log = "";
+      if (new File(ruta).exists()) lista.add(ruta);
 
     // SE CREA EL FICHERO CON LA LISTA PARA COPIAR
     try {
       File listado = new File(destino + "\\lista.txt");
 
       if (listado.createNewFile())
-        log += listado.getName() + " Creado" + "\n";
+        ventana.texto.append(listado.getName() + " Creado" + "\n"); //✔
+
 
     } catch (IOException e) {
-      log += "Ha ocurrido un error al crear el archivo txt." + e + "\n";
+      ventana.texto.append("Ha ocurrido un error al crear el archivo txt." + e + "\n"); //✔
     }
 
     try {
@@ -141,29 +151,15 @@ public class Main {
         myWriter.write(r + "\n");
 
       myWriter.close();
-      log += "Contenido de la lista agregado";
+      ventana.texto.append("Contenido de la lista agregado ✔"); //✔❌
+
     } catch (IOException e) {
-      log += "Ha ocurrido un error al escribir en el fichero txt" + e;
-      //e.printStackTrace();
+      ventana.texto.append("Ha ocurrido un error al escribir en el fichero txt ❌" + e); //✔❌
     }
-
-
-    System.out.println(log);
 
     // SE LANZA LA SENTENCIA DE COPIADO
     copia(uniTerCop, destino, "*" + destino + "\\lista.txt");
 
-
-  }
-
-
-  /**
-   *
-   * @param ruta ruta a comprobar si existe
-   * @param lista coleccion donde se guarda lo que si se va a copiar
-   */
-  public static void genLista(String ruta, List<String> lista) {
-    if (new File(ruta).exists()) lista.add(ruta);
   }
 
   /**
@@ -174,19 +170,19 @@ public class Main {
    */
   public static String posicionIconos(String destino) {
 
-      ProcessBuilder pb = new ProcessBuilder(
-          "REG",
-          "EXPORT",
-          "HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\Shell\\Bags\\1\\Desktop",
-          destino + "\\posicionIconos.reg");
+    ProcessBuilder pb = new ProcessBuilder(
+        "REG",
+        "EXPORT",
+        "HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\Shell\\Bags\\1\\Desktop",
+        destino + "\\posicionIconos.reg");
 
-      pb.redirectErrorStream(true);
+    pb.redirectErrorStream(true);
 
-      try {
-        pb.start();
-      } catch (IOException e) {
-        System.out.println("Error al ejecutar copiado: " + e);
-      }
+    try {
+      pb.start();
+    } catch (IOException e) {
+      System.out.println("Error al ejecutar copiado: " + e);
+    }
 
 
     return "posicionIconos.reg creado";
