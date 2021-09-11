@@ -34,10 +34,10 @@ public class Main {
 
     // Se recorre toda la lista en busca de las particiones del disco externo
     for (File u : unidades) {
-      ventana.texto.append("Analizando unidad: " + u + "\n"); //✔
       String nombreUnidad = FileSystemView.getFileSystemView().getSystemDisplayName(u);
       String letra = nombreUnidad.charAt(nombreUnidad.length() - 3) + ":\\";
 
+      ventana.texto.append("Analizando unidad: " + nombreUnidad + " letra: " + letra + "\n"); //✔
       if (nombreUnidad.indexOf("Copia") == 0)
         unidadDestino = letra;
 
@@ -48,22 +48,28 @@ public class Main {
 
     ////////////////////////  MODO MANUAL /////////////////////////////////////////////////////////
     if (unidadDestino == null) {
+      ventana.texto.append("Letra destino: " + unidadDestino + "\n"); //✔
+
       // Se obtiene la unidad donde se va a realizar la copia manualmente
       unidadDestino = JOptionPane.showInputDialog("Unidad Donde se hará la copia no encontrada introducir:");
 
       // Se pasa a mayusculas y se añade :\
       unidadDestino = unidadDestino.toUpperCase() + ":\\";
-    } else
+    } else {
       ventana.texto.append("Unidad Copia Encontrada en: " + unidadDestino + "\n"); //✔
+    }
 
     if (uniTerCop == null) {
+      ventana.texto.append("Unidad Teracopy: " + uniTerCop + "\n"); //✔
+
       // Se obtiene la unidad donde se encuentra el teracopy manualmente
       uniTerCop = JOptionPane.showInputDialog("Unidad Donde está Teracopy:");
 
       // Se pasa a mayusculas y se añade :\
       uniTerCop = uniTerCop.toUpperCase() + ":\\";
-    } else
+    } else {
       ventana.texto.append("Unidad Teracopy Encontrada en: " + uniTerCop + "\n"); //✔
+    }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////
 
