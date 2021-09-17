@@ -24,8 +24,7 @@ public class Main {
     ventana.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
 
-    String unidadDestino = null;
-    String uniTerCop = null;
+
 
     ////////////////////////  MODO AUTOMATICO/////////////////////////////////////////////////////////
 
@@ -33,21 +32,32 @@ public class Main {
     File[] unidades = File.listRoots();
 
     // Se recorre toda la lista en busca de las particiones del disco externo
-    for (File u : unidades) {
-      String nombreUnidad = FileSystemView.getFileSystemView().getSystemDisplayName(u);
-      String letra = nombreUnidad.charAt(nombreUnidad.length() - 3) + ":\\";
+    String letra, nombreUnidad, unidadDestino = null, uniTerCop = null;
 
-      ventana.texto.append("Analizando unidad: " + nombreUnidad + " letra: " + letra + "\n"); //✔
-      if (nombreUnidad.indexOf("Copia") == 0)
-        unidadDestino = letra;
+    try {
+      for (File u : unidades) {
+        nombreUnidad = FileSystemView.getFileSystemView().getSystemDisplayName(u);
+        letra = nombreUnidad.charAt(nombreUnidad.length() - 3) + ":\\";
 
-      if (nombreUnidad.indexOf("Santi") == 0)
-        uniTerCop = letra;
+        //ventana.texto.append("Analizando unidad: " + nombreUnidad + " letra: " + letra + "\n"); //✔
+        if (nombreUnidad.indexOf("Copia") == 0)
+          unidadDestino = letra;
 
+        if (nombreUnidad.indexOf("Santi") == 0)
+          uniTerCop = letra;
+
+      }
+    } catch (Exception e) {
+      ventana.texto.append("Error bucle \n"); //✔
     }
 
+    if (unidadDestino == null || uniTerCop == null) {
+      System.out.println("Unidad copia: " + unidadDestino + " Unidad tera: " + uniTerCop + "\n");
+      System.exit(-1);
+    }
+    ventana.texto.append("Unidad copia: " + unidadDestino + " Unidad tera: " + uniTerCop + "\n"); //✔
     ////////////////////////  MODO MANUAL /////////////////////////////////////////////////////////
-    if (unidadDestino == null) {
+ /*   if (unidadDestino == null) {
       ventana.texto.append("Letra destino: " + unidadDestino + "\n"); //✔
 
       // Se obtiene la unidad donde se va a realizar la copia manualmente
@@ -69,7 +79,7 @@ public class Main {
       uniTerCop = uniTerCop.toUpperCase() + ":\\";
     } else {
       ventana.texto.append("Unidad Teracopy Encontrada en: " + uniTerCop + "\n"); //✔
-    }
+    }*/
 
     /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -224,7 +234,7 @@ public class Main {
       System.out.println("\nCódigo de salida: " + exitValue);
 
     } catch (InterruptedException e) {
-      e.printStackTrace(System.err);
+      System.out.println("Error al lanzar el proceso de copiado: " + System.err);
     }
 
     System.out.println(p);
